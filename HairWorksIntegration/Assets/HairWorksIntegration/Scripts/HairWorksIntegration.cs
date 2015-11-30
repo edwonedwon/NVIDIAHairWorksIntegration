@@ -501,7 +501,7 @@ public static class HairWorksIntegration
     [DllImport ("HairWorksIntegration")] public static extern void          hwRender(hwHInstance iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwRenderShadow(hwHInstance iid);
     [DllImport ("HairWorksIntegration")] public static extern void          hwStepSimulation(float dt);
-
+	[DllImport ("HairWorksIntegration")] public static extern void          hwSetSphericalHarmonics(ref Vector4 Ar, ref Vector4 Ag, ref Vector4 Ab, ref Vector4 Br, ref Vector4 Bg, ref Vector4 Bb, ref Vector4 C);
     static void LogCallback(System.IntPtr cstr)
     {
         Debug.Log(Marshal.PtrToStringAnsi(cstr));

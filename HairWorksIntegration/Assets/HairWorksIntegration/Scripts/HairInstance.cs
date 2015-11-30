@@ -55,8 +55,9 @@ public class HairInstance : MonoBehaviour
     public uint shader_id { get { return m_hshader; } }
     public uint asset_id { get { return m_hasset; } }
     public uint instance_id { get { return m_hinstance; } }
-
-	public bool willRender = false;
+	
+	  
+	static Vector4[] avCoeff     = new Vector4[7];
 
 
 
@@ -273,8 +274,6 @@ public class HairInstance : MonoBehaviour
 
     void Update()
     {
-       
-
         UpdateBones();
         HairWorksIntegration.hwInstanceSetDescriptor(m_hinstance, ref m_params);
         HairWorksIntegration.hwInstanceUpdateSkinningMatrices(m_hinstance, m_skinning_matrices.Length, m_skinning_matrices_ptr);
@@ -299,14 +298,31 @@ public class HairInstance : MonoBehaviour
 
        
 			HairWorksIntegration.hwStepSimulation (Time.deltaTime);
+		SphericalHarmonicsL2 aSample;    // SH sample consists of 27 floats   
+		LightProbes.GetInterpolatedProbe(this.transform.position, this.GetComponent<MeshRenderer>(), out aSample);
+			for (int iC=0; iC<3; iC++) {
+				avCoeff[iC] = new Vector4((float)aSample [iC, 3], aSample [iC, 1], aSample [iC, 2], aSample [iC, 0] - aSample [iC, 6]);
+			}
+			for (int iC=0; iC<3; iC++) {
+				avCoeff [iC + 3].x = aSample [iC, 4];
+				avCoeff [iC + 3].y = aSample [iC, 5];
+				avCoeff [iC + 3].z = 3.0f * aSample [iC, 6];
+				avCoeff [iC + 3].w = aSample [iC, 7];
+			}
+			avCoeff [6].x = aSample [0, 8];
+			avCoeff [6].y = aSample [1, 8];
+			avCoeff [6].y = aSample [2, 8];
+			avCoeff [6].w = 1.0f;
 
 
-        
-    }
-
-    void OnWillRenderObject()
+		
+		
+	}
+	
+	void OnWillRenderObject()
     {
 		if (s_nth_OnWillRenderObject++ == 0) {
+
 			BeginRender ();
 			foreach (var a in GetInstances()) {
 				a.Render ();
@@ -378,7 +394,7 @@ public class HairInstance : MonoBehaviour
             Matrix4x4 P = GL.GetGPUProjectionMatrix(cam.projectionMatrix, DoesRenderToTexture(cam));
             float fov = cam.fieldOfView;
             HairWorksIntegration.hwSetViewProjection(ref V, ref P, fov);
-            HairLight.AssignLightData();
+			HairLight.AssignLightData();   
 
             if (!s_cameras.Contains(cam))
             {
@@ -403,7 +419,6 @@ public class HairInstance : MonoBehaviour
 		float fov = cam.fieldOfView;
 		HairWorksIntegration.hwSetViewProjection (ref V, ref P, fov);
 		HairLight.AssignLightData ();
-		
 		if (!s_cameras.Contains (cam)) {
 			cam.AddCommandBuffer (s_timing, s_command_buffer);
 			s_cameras.Add (cam);
@@ -417,6 +432,7 @@ public class HairInstance : MonoBehaviour
        
 		if (!m_hasset) { return; }
         HairWorksIntegration.hwSetShader(m_hshader);
+		HairWorksIntegration.hwSetSphericalHarmonics(ref avCoeff [0], ref avCoeff [1], ref avCoeff [2], ref avCoeff [3], ref avCoeff [4], ref avCoeff [5], ref avCoeff [6]);
         HairWorksIntegration.hwRender(m_hinstance);
     }
 
