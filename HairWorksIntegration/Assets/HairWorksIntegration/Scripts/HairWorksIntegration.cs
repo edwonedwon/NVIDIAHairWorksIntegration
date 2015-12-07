@@ -512,8 +512,9 @@ public static class HairWorksIntegration
         //// for debug
         //if(Application.isEditor)
         //{
-        //    hwSetLogCallback(LogCallback);
+          //hwSetLogCallback(LogCallback);
         //}
     }
+
 
 }

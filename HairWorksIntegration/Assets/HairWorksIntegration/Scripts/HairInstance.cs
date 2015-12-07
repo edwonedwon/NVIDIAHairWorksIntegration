@@ -39,6 +39,9 @@ public class HairInstance : MonoBehaviour
     public Transform m_root_bone;
     public bool m_invert_bone_x = true;
     public hwDescriptor m_params = hwDescriptor.default_value;
+	public Texture2D root;
+	public Texture2D tip;
+	public Texture2D specular;
     hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
     hwHInstance m_hinstance = hwHInstance.NullHandle;
@@ -59,7 +62,7 @@ public class HairInstance : MonoBehaviour
 	  
 	static Vector4[] avCoeff     = new Vector4[7];
 
-
+	public bool updateTextures = true;
 
     void RepaintWindow()
     {
@@ -148,6 +151,7 @@ public class HairInstance : MonoBehaviour
     public void AssignTexture(hwTextureType type, Texture2D tex)
     {
         HairWorksIntegration.hwInstanceSetTexture(m_hinstance, type, tex.GetNativeTexturePtr());
+		print (tex.format);
     }
 
     public void UpdateBones()
@@ -214,7 +218,15 @@ public class HairInstance : MonoBehaviour
         b = tmp;
     }
 
-
+	public void UpdateTextures(Texture2D Root, Texture2D Tip, Texture2D Specular){
+		if (root)
+			this.root = Root;
+		if (tip)
+			this.tip = Tip;
+		if (Specular)
+			this.specular = Specular;
+		this.updateTextures = true;
+	}
 
 #if UNITY_EDITOR
     void Reset()
@@ -245,10 +257,10 @@ public class HairInstance : MonoBehaviour
 
     void Awake()
     {
-        HairWorksIntegration.hwSetLogCallback();
-    }
-
-    void OnDestroy()
+		HairWorksIntegration.hwSetLogCallback();
+	}
+	
+	void OnDestroy()
     {
         HairWorksIntegration.hwInstanceRelease(m_hinstance);
         HairWorksIntegration.hwAssetRelease(m_hasset);
@@ -270,6 +282,9 @@ public class HairInstance : MonoBehaviour
     {
         LoadHairShader(m_hair_shader);
         LoadHairAsset(m_hair_asset, false);
+		updateTextures = true;
+		
+		
     }
 
     void Update()
@@ -288,10 +303,20 @@ public class HairInstance : MonoBehaviour
             var size = bmax - center;
             m_probe_mesh.bounds = new Bounds(center, size);
         }
-
+        if (updateTextures)
+        {
+            if (root != null)
+               AssignTexture(hwTextureType.ROOT_COLOR, root);
+            if (tip != null)
+                AssignTexture(hwTextureType.TIP_COLOR, tip);
+            if (specular != null)
+                AssignTexture(hwTextureType.SPECULAR, specular);
+            updateTextures = false;
+        }
 
         s_nth_LateUpdate = 0;
     }
+
 
     void LateUpdate()
     {
@@ -321,6 +346,7 @@ public class HairInstance : MonoBehaviour
 	
 	void OnWillRenderObject()
     {
+
 		if (s_nth_OnWillRenderObject++ == 0) {
 
 			BeginRender ();
@@ -356,6 +382,7 @@ public class HairInstance : MonoBehaviour
     {
         return IsDeferred(cam) || cam.targetTexture != null;
     }
+
 
 
     static public void ClearCommandBuffer()
