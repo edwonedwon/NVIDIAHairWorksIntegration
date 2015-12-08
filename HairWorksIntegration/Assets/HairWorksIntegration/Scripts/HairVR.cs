@@ -3,10 +3,8 @@ using System.Collections;
 [RequireComponent(typeof(Camera))]
 public class HairVR : MonoBehaviour {
 	private int currentEye = 1;
-	private Camera cam;
 	// Use this for initialization
 	void Start () {
-		cam = this.GetComponent<Camera> ();
 	
 	}
 	

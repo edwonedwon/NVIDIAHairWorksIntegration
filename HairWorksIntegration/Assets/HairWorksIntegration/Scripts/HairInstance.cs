@@ -11,13 +11,13 @@ using UnityEditor;
 #endif
 
 
+
 [AddComponentMenu("Hair Works Integration/Hair Instance")]
 [ExecuteInEditMode]
 public class HairInstance : MonoBehaviour
 {
     #region static
     static HashSet<HairInstance> s_instances;
-    static int s_nth_LateUpdate;
     static int s_nth_OnWillRenderObject;
 
     static CommandBuffer s_command_buffer;
@@ -42,7 +42,20 @@ public class HairInstance : MonoBehaviour
 	public Texture2D root;
 	public Texture2D tip;
 	public Texture2D specular;
-    hwHShader m_hshader = hwHShader.NullHandle;
+	public Texture2D clump;
+	public Texture2D density;
+	public Texture2D stiffness;
+	public Texture2D waviness;
+	public Texture2D width;
+	public Texture2D rootStiffness;
+	public Texture2D clumpRoundness;
+	public Texture2D  waveFrequency;
+	public Texture2D strand;
+	public Texture2D length;
+	public Texture2D weights;
+	public Color ambientLight = new Color (0.0f, 0.0f, 0.0f);
+	private Color oldColor;
+	hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
     hwHInstance m_hinstance = hwHInstance.NullHandle;
 
@@ -151,7 +164,6 @@ public class HairInstance : MonoBehaviour
     public void AssignTexture(hwTextureType type, Texture2D tex)
     {
         HairWorksIntegration.hwInstanceSetTexture(m_hinstance, type, tex.GetNativeTexturePtr());
-		print (tex.format);
     }
 
     public void UpdateBones()
@@ -218,15 +230,6 @@ public class HairInstance : MonoBehaviour
         b = tmp;
     }
 
-	public void UpdateTextures(Texture2D Root, Texture2D Tip, Texture2D Specular){
-		if (root)
-			this.root = Root;
-		if (tip)
-			this.tip = Tip;
-		if (Specular)
-			this.specular = Specular;
-		this.updateTextures = true;
-	}
 
 #if UNITY_EDITOR
     void Reset()
@@ -258,6 +261,7 @@ public class HairInstance : MonoBehaviour
     void Awake()
     {
 		HairWorksIntegration.hwSetLogCallback();
+		oldColor = ambientLight;
 	}
 	
 	void OnDestroy()
@@ -311,10 +315,34 @@ public class HairInstance : MonoBehaviour
                 AssignTexture(hwTextureType.TIP_COLOR, tip);
             if (specular != null)
                 AssignTexture(hwTextureType.SPECULAR, specular);
-            updateTextures = false;
-        }
+			if (clump != null)
+				AssignTexture(hwTextureType.CLUMP_SCALE, clump);
+			if (density != null)
+				AssignTexture(hwTextureType.DENSITY, density);
+			if (stiffness != null)
+				AssignTexture(hwTextureType.STIFFNESS, stiffness);
+			if (waviness != null)
+				AssignTexture(hwTextureType.WAVE_SCALE, waviness);
+			if (width != null)
+				AssignTexture(hwTextureType.WIDTH, width);
+			if (rootStiffness != null)
+				AssignTexture(hwTextureType.ROOT_STIFFNESS, rootStiffness);
+			if (clumpRoundness != null)
+				AssignTexture(hwTextureType.CLUMP_ROUNDNESS, clumpRoundness);
+			if (waveFrequency != null)
+				AssignTexture(hwTextureType.WAVE_FREQ, waveFrequency);
+		    if (strand != null)
+				AssignTexture(hwTextureType.STRAND, strand);
+			if (length != null)
+				AssignTexture(hwTextureType.LENGTH, length);
+			if  (weights != null)
+				AssignTexture(hwTextureType.WEIGHTS, weights);
+			updateTextures = false;
 
-        s_nth_LateUpdate = 0;
+		}
+
+
+
     }
 
 
@@ -338,7 +366,10 @@ public class HairInstance : MonoBehaviour
 			avCoeff [6].y = aSample [1, 8];
 			avCoeff [6].y = aSample [2, 8];
 			avCoeff [6].w = 1.0f;
-
+		if (oldColor != ambientLight) {
+			aSample.AddAmbientLight (ambientLight);
+			oldColor = ambientLight;
+		}
 
 		
 		
