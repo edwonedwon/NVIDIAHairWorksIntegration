@@ -24,3 +24,7 @@ ExportedObj/
 
 # Unity3D Generated File On Crash Reports
 sysinfo.txt
+
+# ignore Hairworks dll (should be downloaded by user)
+HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win64.dll
+HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win64.dll.meta
